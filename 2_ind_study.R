@@ -1,4 +1,4 @@
-# ------------------------------------------------------------
+# ------------------- PART 2 --------------------------------
 # You need: 
 # (1) common_genes across studies. You are expected to have a list of common genes across study in an R object
 # Here, it is saved on list_genes$common_genes

@@ -21,7 +21,16 @@ Total number of samples
 
 ### Workflow
 #### 1️⃣ Preprocessing datasets
-script: 
+- script: 1a_preprocessing_raw.R
+- Requirement: Download raw datasets from GEO repository, e.g. "GSE287994_RAW.tar" and "Series Matrix File"
+- Run this script for each study
+- Expected output: average log2 transformed beta value (on gene level)
+⚠️ After you have finished with all studies, you need have a list of "common genes", i.e. genes that appear on all studies. From Step #2, we will only include data from "common genes". Suggestion: save this "common-genes"-list as an R object. 
 
 #### 2️⃣ Calculate "effect size" on individual study
+- script: ind_study.R
+- Requirement:
+- Run this script for each study
+- Expected output: "effect size" and within-study variance
+
 #### 3️⃣ Aggregating multiple studies via MA-approach

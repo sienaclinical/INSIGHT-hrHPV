@@ -1,13 +1,14 @@
+# ------------------------------------------------------------
 # You need: 
 # (1) common_genes across studies. You are expected to have a list of common genes across study in an R object
 # Here, it is saved on list_genes$common_genes
 # (2) log2-transformed beta-values (with rownames == gene's name)
 
-# Do this for all individual selected-studies
+# Run this script for all individual selected-studies
 
-# ----------------------------------------------------------- #
-# Step 3: Calculate effect size and variance                  #
-# ----------------------------------------------------------- #
+# OUTPUT: Effect size, variance within study
+# ------------------------------------------------------------
+
 library(limma)
 
 load("dat_genes.RData")

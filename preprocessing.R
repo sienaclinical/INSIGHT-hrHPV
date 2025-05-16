@@ -2,20 +2,24 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
 BiocManager::install(c("GEOquery", "IlluminaHumanMethylation450kmanifest",
-                       "IlluminaHumanMethylation450kanno.ilmn12.hg19", "DMRcate"))
+                       "IlluminaHumanMethylation450kanno.ilmn12.hg19", 
+                       "minfi", "DMRcate"))
 
-# ----------------------------------------------------------- #
-# Step 1: Download GSE99511 Metadata and Supplementary Files  #
-# ----------------------------------------------------------- #
+# DO: set working directory, where the downloaded data is stored
+# For example: 
+# setwd("C:/Users/Documents/GSE99511")
+
+# ------------------------------------------------------------------ #
+# Step 1: Download the dataset Metadata and its Supplementary Files  #
+# ------------------------------------------------------------------ #
 library(GEOquery)
-# download manually the files from the GEO repository
+# DO: download manually the files from the GEO repository
 # Unzip IDAT files (THIS STATE HAS ONLY PROCESSED ONCE)
-untar("GSE99511/GSE99511_RAW.tar", exdir = "C:/Users/putri/Documents/GSE99511/IDATs")
+untar("GSE99511/GSE99511_RAW.tar", 
+      exdir = "C:/Users/putri/Documents/GSE99511/IDATs")
 
-### 
-### making sample_name
-setwd("C:/Users/putri/Documents/Selected studies/Final selection/GSE99511")
-file_list <- list.files("C:/Users/putri/Documents/Selected studies/GSE99511/IDATs", 
+# -------- making sample_name file -------- #
+file_list <- list.files("C:/Users/Documents/GSE99511/IDATs", 
                         full.names = TRUE)
 filenames <- file_list[-c(1:6)]
 
@@ -51,6 +55,7 @@ colnames(samplesheet) = c("Sample_Name", "Sentrix_ID", "Sentrix_Position",
                           "Sample_Group")
 write.csv(samplesheet, file="SampleSheet.csv", row.names = FALSE, 
           quote=FALSE)
+# save this csv on the IDATs folder
 
 # ----------------------------------------------------------- #
 # Step 2: Read IDAT files and create RGChannelSet             #
@@ -58,32 +63,27 @@ write.csv(samplesheet, file="SampleSheet.csv", row.names = FALSE,
 library(minfi)
 
 # Locate IDAT files
-idat_dir <- "C:/Users/putri/Documents/Selected studies/Final selection/GSE99511"
+idat_dir <- "C:/Users/Documents/Selected studies/Final selection/GSE99511"
 targets <- read.metharray.sheet(idat_dir)
 
 # Read raw IDAT files
 rgSet <- read.metharray.exp(targets = targets)
 
-# Check the sample names and sample sheet
-# sampleNames(rgSet)
-pData(rgSet) <- targets  # add phenotype data
-
-
 # ----------------------------------------------------------- #
 # Step 3: Preprocess and Normalize                            #
 # ----------------------------------------------------------- #
 library(minfi)
-library(IlluminaHumanMethylation450kanno.ilmn12.hg19)
+library(IlluminaHumanMethylation450kanno.ilmn12.hg19) #depends on the platform used
 library(tidyr)
 library(dplyr)
 
 # Quality control and preprocessing
-mSet <- preprocessIllumina(rgSet)  # or use preprocessQuantile / preprocessFunnorm
+mSet <- preprocessIllumina(rgSet)  # alternatively use preprocessQuantile / preprocessFunnorm
 
 # Get beta values
 Beta <- getBeta(mSet)
 
-# Mapping probes into genes level
+# ------------ Mapping probes into genes level ------------ #
 # Get the annotation data
 anno <- getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19)
 
@@ -112,59 +112,9 @@ gene_level_beta <- beta_long %>%
   summarize(Mean_Beta = mean(Beta, na.rm = TRUE)) %>%
   pivot_wider(names_from = Sample, values_from = Mean_Beta)
 
-ofset = 0.000001
-Mvals0 <- log2((gene_level_beta[,-1]+ofset) / (1-gene_level_beta[,-1]+ofset))
+# log2-transformed beta values 
+offset = 0.000001
+Mvals0 <- log2((gene_level_beta[,-1]+offset) / (1-gene_level_beta[,-1]+offset))
 rownames(Mvals0) = as.character(gene_level_beta$Gene)
 
-save(gene_level_beta, Mvals0, group, file="dat_genes.RData")
-
-# ----------------------------------------------------------- #
-# Step 3: Calculate effect size and variance                  #
-# ----------------------------------------------------------- #
-library(limma)
-
-load("dat_genes.RData")
-load("C:/Users/putri/Documents/Selected studies/Final selection/list_genes.RData")
-
-## take the common probes only
-im = match(list_genes$common_genes, rownames(Mvals0))
-Mvals = Mvals0[im,]
-
-# #1. VARIANCE
-# # Create design matrix
-# group0 <- as.factor(pData(mSet)$Sample_Group)  # replace with real group column name
-# group = replicate(length(group0), "case")  ## group2 is CIN3+
-# group[which(group0=="Normal")] = "control"  ## group1 is Normal
-# group = as.factor(group)
-
-design <- model.matrix(~ group)
-
-s2_est <- fit$s2.post #within study variance from limma
-n_cont = length(which(group=="control"))
-n_case = length(which(group=="case"))
-N = n_cont + n_case
-J = 1 - (3/(4*N - 9)) #hedges correction
-
-res_table = topTable(fit, number=nrow(Mvals))
-
-## 2. EFFECT SIZE 
-teta_ij = xbar_cont_ij = xbar_case_ij = var_cont_ij = var_case_ij = matrix()
-for(i in 1:nrow(Mvals)) {
-  xbar_cont_ij[i] = mean(as.numeric(Mvals[i,which(group=="control")]), na.rm=TRUE) 
-  xbar_case_ij[i] = mean(as.numeric(Mvals[i,which(group=="case")]), na.rm=TRUE)
-  
-  var_cont_ij[i] = var(as.numeric(Mvals[i,which(group=="control")]), na.rm=TRUE) 
-  var_case_ij[i] = var(as.numeric(Mvals[i,which(group=="case")]), na.rm=TRUE) 
-  
-  xbar = xbar_case_ij[i] - xbar_cont_ij[i]
-  teta_ij[i] = (xbar/s2_est[i]) * J
-}
-summary(teta_ij)
-
-result_MA_GSE99511 = data.frame(teta_ij,s2_est, xbar_cont_ij, xbar_case_ij,
-                                var_cont_ij, var_case_ij)
-rownames(result_MA_GSE99511) = rownames(Mvals)
-head(result_MA_GSE99511)
-
-save(result_MA_GSE99511, file="result_MA_GSE99511.RData")
-
+# save(gene_level_beta, Mvals0, group, file="dat_genes.RData")

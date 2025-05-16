@@ -1,3 +1,8 @@
+# --------------------- PART 1 ------------------------------------ #
+# Preprocess raw datasets downloaded from GEO repository
+# You need: the ZIP files (raw) ready on your local repository
+# ----------------------------------------------------------------- #
+
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
@@ -6,15 +11,14 @@ BiocManager::install(c("GEOquery", "IlluminaHumanMethylation450kmanifest",
                        "minfi", "DMRcate"))
 
 # DO: set working directory, where the downloaded data is stored
-# For example: 
-# setwd("C:/Users/Documents/GSE99511")
+# For example: setwd("C:/Users/Documents/GSE99511")
 
-# ------------------------------------------------------------------ #
-# Step 1: Download the dataset Metadata and its Supplementary Files  #
-# ------------------------------------------------------------------ #
+# ########################################################### #
+# Download the dataset and its Supplementary Files            #
+# ########################################################### #
 library(GEOquery)
 # DO: download manually the files from the GEO repository
-# Unzip IDAT files (THIS STATE HAS ONLY PROCESSED ONCE)
+# Unzip IDAT files 
 untar("GSE99511/GSE99511_RAW.tar", 
       exdir = "C:/Users/putri/Documents/GSE99511/IDATs")
 
@@ -57,9 +61,9 @@ write.csv(samplesheet, file="SampleSheet.csv", row.names = FALSE,
           quote=FALSE)
 # save this csv on the IDATs folder
 
-# ----------------------------------------------------------- #
-# Step 2: Read IDAT files and create RGChannelSet             #
-# ----------------------------------------------------------- #
+# ########################################################### #
+# Read IDAT files and create RGChannelSet                     #
+# ########################################################### #
 library(minfi)
 
 # Locate IDAT files
@@ -69,9 +73,9 @@ targets <- read.metharray.sheet(idat_dir)
 # Read raw IDAT files
 rgSet <- read.metharray.exp(targets = targets)
 
-# ----------------------------------------------------------- #
-# Step 3: Preprocess and Normalize                            #
-# ----------------------------------------------------------- #
+# ########################################################### #
+# PREPROCESSING AND NORMALIZING                               #
+# ########################################################### #
 library(minfi)
 library(IlluminaHumanMethylation450kanno.ilmn12.hg19) #depends on the platform used
 library(tidyr)
@@ -83,7 +87,9 @@ mSet <- preprocessIllumina(rgSet)  # alternatively use preprocessQuantile / prep
 # Get beta values
 Beta <- getBeta(mSet)
 
-# ------------ Mapping probes into genes level ------------ #
+# ########################################################### #
+# Mapping probes into genes level                             #
+# ########################################################### #
 # Get the annotation data
 anno <- getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19)
 
@@ -117,4 +123,4 @@ offset = 0.000001
 Mvals0 <- log2((gene_level_beta[,-1]+offset) / (1-gene_level_beta[,-1]+offset))
 rownames(Mvals0) = as.character(gene_level_beta$Gene)
 
-# save(gene_level_beta, Mvals0, group, file="dat_genes.RData")
+save(gene_level_beta, Mvals0, group, file="dat_genes.RData")

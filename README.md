@@ -1,4 +1,4 @@
-# Integrative Analyses of Individual Patient Genomic-Data to Discover Novel Biomarkers for Cervical pre-Cancer in high risk HPV-positive women
+# Integrative Analyses of Individual Patient Genomic-Data to Discover Novel Biomarkers
 
 Code name: INSIGHT
 

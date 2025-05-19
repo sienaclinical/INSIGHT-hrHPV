@@ -21,7 +21,7 @@ Total number of samples
 
 ### Workflow
 #### 1️⃣ Preprocessing datasets
-- script: 1a_preprocessing_raw.R
+- script: 1a_preprocessing_raw.R (for raw datasets: #1, #3, #4)
 - Requirement: Download raw datasets from GEO repository, e.g. "GSE287994_RAW.tar" and "Series Matrix File"
 - Run this script for each study
 - Expected output: average log2 transformed beta value (on gene level)

@@ -36,5 +36,5 @@ Total number of samples
 
 #### 3️⃣ Aggregating multiple studies via MA-approach
 - script: 3_MA.R
-- Requirement: "effect size" and within-study variance
+- Requirement: (i) "effect size" and within-study variance (ii) run the function in "f_tau2.R"
 - Expected output: "Overall effect size", between-study variance, adj-p-values

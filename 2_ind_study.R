@@ -27,6 +27,10 @@ group = as.factor(group)
 # Create design matrix
 design <- model.matrix(~ group)
 
+# fit limma model
+fit <- lmFit(Mvals, design)
+fit <- eBayes(fit)
+
 # WITHIN STUDY VARIANCE (from Limma)
 s2_est <- fit$s2.post 
 

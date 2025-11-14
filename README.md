@@ -27,7 +27,9 @@ Total number of samples
 - Expected output: average log2 transformed beta value (on gene level)
 
 ⚠️ USE ALL GENES / PROBES -- not only from the CPG islands + regulatory-genes
+
 -- OPTIONS: need to be filtered from CPG islands only and regulatory genes
+
 ⚠️ After you have finished with all studies, you need have a list of "common genes", i.e. genes that appear on all studies. From Step #2, we will only include data from "common genes". Suggestion: save this "common-genes"-list as an R object. 
 
 

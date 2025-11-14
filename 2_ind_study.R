@@ -1,5 +1,5 @@
 # ============================================================================
-# PART 2. Effect Size Calculation for Meta-Analysis
+# PART 2. Effect Size Calculation for each individual study
 # ============================================================================
 # Prerequisites:
 # 1. Common genes list: An R object containing genes shared across all studies
@@ -76,4 +76,4 @@ result_GSE99511 = data.frame(teta_ij,s2_est, xbar_cont_ij, xbar_case_ij,
                              var_cont_ij, var_case_ij)
 rownames(result_GSE9951) = rownames(Mvals)
 
-save(result_GSE99511, file="result_MA_GSE99511.RData")
+save(result_GSE99511, file="result_GSE99511.RData")

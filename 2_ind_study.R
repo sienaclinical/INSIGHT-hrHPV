@@ -1,17 +1,28 @@
-# ------------------- PART 2 --------------------------------
-# You need: 
-# (1) common_genes across studies. You are expected to have a list of common genes across study in an R object
-# Here, it is saved on list_genes$common_genes
-# (2) log2-transformed beta-values (with rownames == gene's name)
-
-# Run this script for all individual selected-studies
-
-# OUTPUT: Effect size, variance within study
-# ------------------------------------------------------------
+# ============================================================================
+# PART 2. Effect Size Calculation for Meta-Analysis
+# ============================================================================
+# Prerequisites:
+# 1. Common genes list: An R object containing genes shared across all studies
+#    - Location: list_genes$common_genes
+#    - Format: Character vector of gene names
+# 
+# 2. Methylation data: Log2-transformed beta-values
+#    - Format: Matrix or data frame with rownames as gene identifiers
+#    - Transformation: log2(beta / (1 - beta))
+#    - This is the output from the previous script ("methdat_GSE99511.RData")
+# 
+# Instructions:
+# - Execute this script separately for each study in the integrative analaysis
+# - Ensure gene naming conventions are consistent across studies
+# 
+# Output:
+# - Effect size (standardized mean difference, or fold change)
+# - Within-study variance
+# ============================================================================
 
 library(limma)
 
-load("dat_genes.RData") ; load("list_genes.RData")
+load("methdat_GSE99511.RData") ; load("list_genes.RData")
 
 ## take the common probes only
 im = match(list_genes$common_genes, rownames(Mvals0))
@@ -66,4 +77,3 @@ result_GSE99511 = data.frame(teta_ij,s2_est, xbar_cont_ij, xbar_case_ij,
 rownames(result_GSE9951) = rownames(Mvals)
 
 save(result_GSE99511, file="result_MA_GSE99511.RData")
-# run this script for all datasets, and save the output by naming it with the corresponding GEO-ID 

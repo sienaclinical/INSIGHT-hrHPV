@@ -124,7 +124,7 @@ results_MA = data.frame(teta = m, tau2, pval.adj)
 res = cbind(results_MA, teta_ij, sp2i)
 
 # --------------------------------------------------------- #
-# Extracr the differentially methylated genes 
+# Extract the differentially methylated genes 
 # --------------------------------------------------------- #
 alpha = 0.05
 idDEG = which(results_MA$pval.adj<alpha)

@@ -71,7 +71,7 @@ si2_case = cbind(result_GSE99511$var_case_ij,
                  result_GSE287994$var_case_ij)
 
 # ##################################################################### #
-# META-ANALYSIS IN 6 DATASETS                                           #
+# META-ANALYSIS IN 4 DATASETS                                           #
 # ##################################################################### #
 p = length(list_genes$common_genes)
 
@@ -108,19 +108,14 @@ sp2i = cbind(result_GSE143752$s2_est,
              result_GSE99511$s2_est)
 rownames(teta_ij) = rownames(sp2i) = rownames(result_GSE143752)
 
-# calculate between-study variance (call the tau2-function first, from "f_tau.R" script)
-tau2 = matrix(); 
-for(g in 1:nrow(teta_ij)){tau2[g] = estimate.tau2(teta_ij[g,], sp2i[g,], length(datasets), "pm")} 
-summary(tau2)
-
 m = matrix(); 
 for(g in 1:nrow(teta_ij)){
   y = teta_ij[g,]
-  w = 1 / (tau2[g] + sp2i[g,])    
+  w = 1 / (REMA_results$tau2[g] + sp2i[g,])    
   m[g] = sum(w*y) / sum(w)
 }
 names(m) = rownames(teta_ij)
-results_MA = data.frame(teta = m, tau2, pval.adj)
+results_MA = data.frame(teta = m, tau2=REMA_results$tau2, pval.adj)
 res = cbind(results_MA, teta_ij, sp2i)
 
 # --------------------------------------------------------- #

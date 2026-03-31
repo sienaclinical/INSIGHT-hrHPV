@@ -121,10 +121,10 @@ common_cpgs <- intersect(rownames(Beta), rownames(cpg_island_probes))
 beta_matrix <- Beta[common_cpgs, ]
 anno <- anno[common_cpgs, ]
 
-# 6. Extract gene symbols
+# Extract gene symbols
 cpg_gene_map <- strsplit(as.character(anno$UCSC_RefGene_Name), ";")
 
-# 7. Create mapping dataframe
+# Create mapping dataframe
 cpg_to_gene <- data.frame(
   CpG = rep(rownames(beta_matrix), sapply(cpg_gene_map, length)),
   Gene = unlist(cpg_gene_map),
@@ -136,16 +136,18 @@ beta_long <- as.data.frame(beta_matrix)
 beta_long$CpG <- rownames(beta_long)
 beta_long <- merge(beta_long, cpg_to_gene, by = "CpG")
 
-# Summarize: average beta values by gene per sample
-gene_level_beta <- beta_long %>%
-  pivot_longer(cols = -c(CpG, Gene), names_to = "Sample", values_to = "Beta") %>%
-  group_by(Gene, Sample) %>%
-  summarize(Mean_Beta = mean(Beta, na.rm = TRUE)) %>%
-  pivot_wider(names_from = Sample, values_from = Mean_Beta)
+# Calculate M-values: log2-transformed beta values 
+ofset = 0.000001
+Mvals0 <- cbind(beta_long[,c(1,70)], 
+                log2((beta_long[,-c(1,70)]+ofset) / (1-beta_long[,-c(1,70)]+ofset)))
 
-# log2-transformed beta values 
-offset = 0.000001
-Mvals0 <- log2((gene_level_beta[,-1]+offset) / (1-gene_level_beta[,-1]+offset))
-rownames(Mvals0) = as.character(gene_level_beta$Gene)
+# Summarize: average M-values by gene per sample
+gene_level <- Mvals0 %>%
+  select(-CpG) %>%
+  group_by(Gene) %>%
+  summarise(across(where(is.numeric), mean, na.rm = TRUE)) %>%
+  ungroup()
 
-save(gene_level_beta, Mvals0, group, file="methdat_GSE99511.RData")
+Mvals0_gene = as.matrix(gene_level[,-1])
+rownames(Mvals0_gene) = gene_level$Gene
+save(Mvals0_gene, group, file="methdat_GSE99511.RData")

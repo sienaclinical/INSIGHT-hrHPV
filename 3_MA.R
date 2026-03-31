@@ -76,17 +76,22 @@ si2_case = cbind(result_GSE99511$var_case_ij,
 p = length(list_genes$common_genes)
 
 # Random effect meta-analysis
-pval = matrix()
+REMA_results = matrix(NA,p, 5) 
 for(g in 1:p){
   meta.model = metacont(n_case,xbar_case[g,],si2_case[g,],
                         n_contr,xbar_contr[g,],si2_contr[g,],
                         method.tau="PM")
-  pval[g] = meta.model$pval.random
+  REMA_results[g,1] = as.numeric(meta.model$tau2)
+  REMA_results[g,2] = meta.model$pval.random
+  REMA_results[g,3] = meta.model$I2
+  REMA_results[g,4] = meta.model$Q #heterogeneity statistocs
+  REMA_results[g,5] = meta.model$pval.Q
 }
-save(pval,file="pval_meta.RData")
+colnames(REMA_results) = c("tau2", "pval", "I2", "Q", "pval.Q")
+save(REMA_results,file="REMA_results.RData")
 
 # BH corrections
-pval.adj = p.adjust(pval,method="BH")
+pval.adj = p.adjust(REMA_results$pval,method="BH")
 # ##################################################################### #
 
 
@@ -129,4 +134,3 @@ results_MA_deg_sort = results_MA_deg[order(abs(results_MA_deg$teta), decreasing=
 idDEG = which(res$pval.adj<alpha)
 results_MA_deg = res[idDEG,]
 results_MA_deg_sort = results_MA_deg[order(abs(results_MA_deg$teta), decreasing=TRUE),]
-
